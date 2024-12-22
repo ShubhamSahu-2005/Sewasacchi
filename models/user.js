@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
   phoneNumber: { type: String, required: true, unique: true },
+  userID:{type:String,required:true,unique:true},
   isVerified: { type: Boolean, default: false },
   AadharNumber: { type: String, default: "" },
   PanNumber: { type: String, default: "" },
