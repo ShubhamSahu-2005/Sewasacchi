@@ -133,4 +133,87 @@ export async function POST(req) {
     );
   }
 }
+export async function GET(req) {
+  try {
+    await connectToDB();
+
+    const fundraisers = await Fundraiser.find({});
+    return NextResponse.json(fundraisers, { status: 200 });
+  } catch (error) {
+    console.error("Error retrieving fundraisers:", error);
+    return NextResponse.json(
+      { error: "Failed to retrieve fundraisers", details: error.message },
+      { status: 500 }
+    );
+  }
+}
+export async function DELETE(req) {
+  try {
+    const token = await req.cookies.get("authToken");
+
+    if (!token) {
+      return NextResponse.json(
+        { error: "Unauthorized: Token not provided" },
+        { status: 401 }
+      );
+    }
+
+    let decoded;
+    try {
+      decoded = verifyToken(token.value);
+    } catch (err) {
+      return NextResponse.json(
+        { error: "Invalid or expired token" },
+        { status: 401 }
+      );
+    }
+
+    const userID = decoded.id; // Ensure only the owner can delete their campaigns
+    const url = new URL(req.url);
+    const fundraiserID = url.searchParams.get("fundraiserID");
+
+    if (!fundraiserID) {
+      return NextResponse.json(
+        { error: "Fundraiser ID is required" },
+        { status: 400 }
+      );
+    }
+
+    await connectToDB();
+
+    // Check if the fundraiser exists and belongs to the authenticated user
+    const fundraiser = await Fundraiser.findOne({ fundraiserID });
+
+    if (!fundraiser) {
+      return NextResponse.json(
+        { error: "Fundraiser not found" },
+        { status: 404 }
+      );
+    }
+
+    if (fundraiser.userID !== userID) {
+      return NextResponse.json(
+        { error: "Unauthorized: You cannot delete this fundraiser" },
+        { status: 403 }
+      );
+    }
+
+    // Delete fundraiser from the database
+    await Fundraiser.deleteOne({ fundraiserID });
+
+    return NextResponse.json(
+      { message: "Fundraiser deleted successfully" },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error deleting fundraiser:", error);
+    return NextResponse.json(
+      { error: "Failed to delete fundraiser", details: error.message },
+      { status: 500 }
+    );
+  }
+}
+
+
+
 
