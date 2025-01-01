@@ -1,8 +1,9 @@
 const mongoose = require('mongoose');
 
 const donationSchema = new mongoose.Schema({
+  donationId:{type:String,required:true,unique:true},
   fundraiserId: { type: mongoose.Schema.Types.ObjectId, ref: 'Fundraiser', required: true },
-  donorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // Optional for anonymous donations
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User',required:true }, // Optional for anonymous donations
   donorName: { type: String, default: 'Anonymous' },
   amount: { type: Number, required: true },
   message: { type: String },
