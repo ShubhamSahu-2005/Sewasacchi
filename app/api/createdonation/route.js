@@ -2,6 +2,8 @@ import Razorpay from "razorpay";
 import mongoose from "mongoose";
 import { connectToDB } from "@/utils/database";
 import Donation from "@/models/donations";
+import { NextResponse } from "next/server";
+import { verifyToken } from "@/utils/jwt";
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -9,6 +11,11 @@ const razorpay = new Razorpay({
 });
 
 export default async function handler(req, res) {
+
+
+
+
+
   if (req.method === "POST") {
     const { fundraiserID, userID, amount } = req.body;
 
@@ -17,6 +24,24 @@ export default async function handler(req, res) {
     }
 
     try {
+      const token =await req.cookies.get("authToken");
+  console.log("token is",token);
+  if(!token){
+    return NextResponse.json({
+      error:"Unauthorised:Token not provided"
+    },{status:401});
+  }
+  let decoded;
+  try{
+    decoded= verifyToken(token.value);
+    console.log(decoded);
+  }catch (err){
+    return NextResponse.json(
+      {error:"Invalid or expired token"},
+      {status:401}
+    );
+  }
+  const userID=decoded.id;
         await connectToDB();
       // Create Razorpay Order
       const options = {
@@ -29,8 +54,8 @@ export default async function handler(req, res) {
       // Save Donation details in MongoDB
       const donation = new Donation({
         donationID: order.id,
-        fundraiserID: mongoose.Types.ObjectId(fundraiserID),
-        userID: mongoose.Types.ObjectId(userID),
+        fundraiserID: fundraiserID,
+        userID:userID ,
         amount: amount,
         paymentStatus: "pending",
         orderID: order.id,

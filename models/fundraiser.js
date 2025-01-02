@@ -10,7 +10,7 @@ const fundraiserSchema = new mongoose.Schema({
   patientImage:{type:String,required:true},
   patientName:{type:String,required:true},
   medicalDocument:{type:String,required:true},
-  qrCode:{type:String,required:true},
+  bankDetails:{type:String,required:true},
   category: { type: String, required: true },
   
   beneficiary: { type: String, required: true },

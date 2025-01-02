@@ -2,8 +2,9 @@ import { connectToDB } from "@/utils/database";
 import Fundraiser from "@/models/fundraiser";
 import { verifyToken } from "@/utils/jwt";
 import { v4 as uuidv4 } from "uuid";
+import cloudinary from "@/utils/cloudinary"
 import { NextResponse } from "next/server";
-import multer from "multer";
+
 
 
 export async function POST(req) {
@@ -37,19 +38,7 @@ export async function POST(req) {
     await connectToDB();
 
     // Parse the request body
-    const body = await req.json();
-    const {
-      title,
-      description,
-      goalAmount,
-      patientImage,
-      patientName,
-      medicalDocument,
-      qrCode,
-      category,
-      beneficiary,
-      deadline,
-    } = body;
+   
     const formData= await req.formData();
     const fundraiserData=Object.fromEntries(formData.entries());
 
@@ -65,9 +54,13 @@ export async function POST(req) {
       "beneficiary",
       "deadline",
     ];
+    console.log("Form Data:", formData);
+console.log("Patient Image:", formData.get('patientImage'));
+console.log("Medical Document:", formData.get('medicalDocument'));
+
 
     for (const field of requiredFields) {
-      if (!body[field]) {
+      if (!formData.get(field)) {
         return NextResponse.json(
           { error: `Field "${field}" is required` },
           { status: 400 }
@@ -85,21 +78,29 @@ export async function POST(req) {
         cloudinary.uploader.upload_stream(
           { folder },
           (error, result) => {
-            if (error) reject(error);
+            console.log(error)
+            if (error) reject(new Error(`Cloudinary upload failed: ${error.message}`));
+
+            
             else resolve(result.secure_url);
+            console.log('Cloudinary Result:', result);
+
           }
         ).end(buffer);
       });
     };
-    const [patientImageUrl, medicalDocumentUrl, qrCodeUrl] = await Promise.all([
+    const [patientImageUrl, medicalDocumentUrl] = await Promise.all([
       uploadToCloudinary(formData.get('patientImage'), 'patient_images'),
       uploadToCloudinary(formData.get('medicalDocument'), 'medical_documents'),
-      uploadToCloudinary(formData.get('qrCode'), 'qr_codes')
+      
     ]);
    
 
     // Create unique fundraiser ID
     const fundraiserID = uuidv4();
+    console.log("Patient Image URL:", patientImageUrl);
+console.log("Medical Document URL:", medicalDocumentUrl);
+
 
 
     // Create a new fundraiser record
@@ -110,7 +111,7 @@ export async function POST(req) {
       patientImage: patientImageUrl,
       patientName: formData.get('patientName'),
       medicalDocument: medicalDocumentUrl,
-      qrCode: qrCodeUrl,
+      bankDetails: JSON.parse(formData.get('bankDetails')),
       fundraiserID,
       category: formData.get('category'),
       userID,
