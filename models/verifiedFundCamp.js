@@ -1,10 +1,11 @@
-const mongoose = require('mongoose');
+import { Schema, model } from 'mongoose';
 
-const verifiedCampSchema = new mongoose.Schema({
+const verifiedCampSchema = new Schema({
     title: { type: String, required: true },
     fundraiserID:{type:String,required:true,unique:true},
     userID:{type:String,required:true,unique:true},
     description: { type: String, required: true },
+    urgent :{type:Boolean,default:false},
     goalAmount: { type: Number, required: true },
     mobileNumber:{type:Number,required:true},
     raisedAmount: { type: Number, default: 0 },
@@ -24,4 +25,4 @@ const verifiedCampSchema = new mongoose.Schema({
     updatedAt: { type: Date, default: Date.now },
 });
 
-module.exports = mongoose.model('VerifiedCamp', verifiedCampSchema);
+export default model('VerifiedCamp', verifiedCampSchema);
