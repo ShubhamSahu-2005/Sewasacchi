@@ -6,6 +6,7 @@ const fundraiserSchema = new mongoose.Schema({
   userID:{type:String,required:true,unique:true},
   description: { type: String, required: true },
   goalAmount: { type: Number, required: true },
+  mobileNumber:{type:Number,required:true},
   raisedAmount: { type: Number, default: 0 },
   patientImage:{type:String,required:true},
   patientName:{type:String,required:true},
