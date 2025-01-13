@@ -9,6 +9,7 @@ const userSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
   name: { type: String, default: "" },
   email: { type: String, default: "" },
+  password:{type:String,required:true},
   role:{type:String,enum:['donor','fundraiser','admin'],default:'donor'}
 });
 
